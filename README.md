@@ -18,10 +18,9 @@
   <img src="https://img.shields.io/badge/uv-6A5ACD?style=for-the-badge&logo=python&logoColor=white" alt="uv"/>
 </p>
 <p align="center">
-
-👉 <a href="https://pima-indians-diabetes---eda-classification.streamlit.app/"><strong>Open Pima Diabetes ML Dashboard</strong></a>
-
+🌐 <a href="https://pima-indians-diabetes---eda-classification.streamlit.app/"><strong>Open Pima Diabetes ML Dashboard</strong></a>
 </p>
+
 ---
 
 # 📌 Overview
