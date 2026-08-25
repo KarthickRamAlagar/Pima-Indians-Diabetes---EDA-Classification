@@ -1,5 +1,6 @@
 # Pima Diabetes ML — Assignment 1 (26DS601)
 
+
 <p align="center">
 
 **Exploratory Data Analysis & Machine Learning Classification on the Pima Indians Diabetes Dataset**
@@ -7,9 +8,14 @@
 </p>
 
 <p align="center">
-
-Python • Pandas • NumPy • Scikit-learn • Matplotlib • Seaborn • Streamlit • uv
-
+  <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python"/>
+  <img src="https://img.shields.io/badge/Pandas-150458?style=for-the-badge&logo=pandas&logoColor=white" alt="Pandas"/>
+  <img src="https://img.shields.io/badge/NumPy-013243?style=for-the-badge&logo=numpy&logoColor=white" alt="NumPy"/>
+  <img src="https://img.shields.io/badge/scikit--learn-F7931E?style=for-the-badge&logo=scikit-learn&logoColor=white" alt="Scikit-learn"/>
+  <img src="https://img.shields.io/badge/Matplotlib-11557C?style=for-the-badge&logo=plotly&logoColor=white" alt="Matplotlib"/>
+  <img src="https://img.shields.io/badge/Seaborn-4C72B0?style=for-the-badge&logo=python&logoColor=white" alt="Seaborn"/>
+  <img src="https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white" alt="Streamlit"/>
+  <img src="https://img.shields.io/badge/uv-6A5ACD?style=for-the-badge&logo=python&logoColor=white" alt="uv"/>
 </p>
 
 ---
