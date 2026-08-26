@@ -162,9 +162,8 @@ with tab5:
 
 # --- Floating round download button (links directly to the hosted PDF) ---
 PDF_URL = ("https://raw.githubusercontent.com/KarthickRamAlagar/"
- "Pima-Indians-Diabetes---EDA-Classification/main/"
- "CDC%20Diabetes%20Health%20Indicator%20-%2026034.pdf")
-
+           "Pima-Indians-Diabetes---EDA-Classification/main/"
+           "CDC%20Diabetes%20Health%20Indicator%20-%2026034.pdf")
 
 fab_html = f"""
 <style>
@@ -190,7 +189,20 @@ html, body {{ margin: 0; padding: 0; background: transparent; }}
 #pdf-fab svg {{ width: 24px; height: 24px; }}
 </style>
 <div class="fab-wrap">
-    <a id="pdf-fab" href="{PDF_URL}" download title="Download report (PDF)">
+    <a id="pdf-fab" href="{PDF_URL}" download title="Download report (PDF)"
+       onclick="
+            try {{
+                var ctx = new (window.AudioContext || window.webkitAudioContext)();
+                var osc = ctx.createOscillator();
+                var gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.value = 1046.5;
+                gain.gain.setValueAtTime(0.25, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+                osc.connect(gain); gain.connect(ctx.destination);
+                osc.start(); osc.stop(ctx.currentTime + 0.3);
+            }} catch (e) {{}}
+       ">
         <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M6 2h9l5 5v15a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1z" fill="#fff"/>
             <path d="M15 2v5h5" fill="none" stroke="#534AB7" stroke-width="1.2"/>
@@ -199,20 +211,5 @@ html, body {{ margin: 0; padding: 0; background: transparent; }}
         </svg>
     </a>
 </div>
-<script>
-document.getElementById('pdf-fab').addEventListener('click', function() {{
-    try {{
-        var ctx = new (window.AudioContext || window.webkitAudioContext)();
-        var osc = ctx.createOscillator();
-        var gain = ctx.createGain();
-        osc.type = 'sine';
-        osc.frequency.value = 1046.5;
-        gain.gain.setValueAtTime(0.25, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
-        osc.connect(gain); gain.connect(ctx.destination);
-        osc.start(); osc.stop(ctx.currentTime + 0.3);
-    }} catch (e) {{}}
-}});
-</script>
 """
-st.iframe(fab_html, height=80)
+st.markdown(fab_html, unsafe_allow_html=True)
