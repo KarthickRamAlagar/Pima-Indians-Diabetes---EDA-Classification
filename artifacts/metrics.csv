@@ -1,3 +1,3 @@
 Model,Accuracy,Precision,Recall,F1-score,ROC-AUC
-KNN,0.773,0.638,0.815,0.715,0.844
-Naive Bayes,0.734,0.6,0.722,0.655,0.813
+KNN,0.704,0.261,0.612,0.366,0.709
+Naive Bayes,0.712,0.29,0.734,0.416,0.781

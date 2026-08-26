@@ -1,54 +1,40 @@
 """
 preprocessing.py
 IN:  raw DataFrame from data_loader.load_raw_data()
-OUT: cleaned DataFrame (missing values handled) and fitted StandardScaler
-     for use by both train.py and evaluate.py, so training and testing
-     apply identical transformations.
+OUT: cleaned DataFrame and a fitted StandardScaler, used identically by
+     both train.py and evaluate.py so training and testing apply the
+     same transformation.
+
+Unlike the Pima dataset, the CDC Diabetes Health Indicators dataset has
+ZERO missing values (confirmed via X.isnull().sum() on the raw fetch) -
+it was already cleaned by the CDC/Kaggle before publication. So there is
+no missing-value imputation step here: clean_data() is a pass-through,
+kept only so the rest of the pipeline has one consistent entry point.
+For Assignment 1 Q1 task 6 ("handle missing values"), the answer is
+"not needed - the source dataset is pre-cleaned", not an imputation step.
 """
 
 import pandas as pd
 import joblib
 from sklearn.preprocessing import StandardScaler
 
-ZERO_AS_MISSING_COLS = ["Glucose", "BloodPressure", "SkinThickness", "Insulin", "BMI"]
-
-
-def mark_missing(df: pd.DataFrame) -> pd.DataFrame:
-    """Convert biologically-impossible zeros to NaN so they register as missing.
-
-    IN:  raw DataFrame (zeros in ZERO_AS_MISSING_COLS mean "not recorded")
-    OUT: DataFrame with those zeros replaced by NaN
-    """
-    df = df.copy()
-    df[ZERO_AS_MISSING_COLS] = df[ZERO_AS_MISSING_COLS].replace(0, pd.NA)
-    for col in ZERO_AS_MISSING_COLS:
-        df[col] = pd.to_numeric(df[col], errors="coerce")
-    return df
-
-
-def impute_missing(df: pd.DataFrame) -> pd.DataFrame:
-    """Impute missing values with the class-conditional median.
-
-    IN:  DataFrame with NaNs (post mark_missing), must include 'Outcome'
-    OUT: DataFrame with no missing values in ZERO_AS_MISSING_COLS
-    """
-    df = df.copy()
-    for col in ZERO_AS_MISSING_COLS:
-        df[col] = df.groupby("Outcome")[col].transform(lambda x: x.fillna(x.median()))
-    return df
-
 
 def clean_data(df: pd.DataFrame) -> pd.DataFrame:
-    """Full cleaning pipeline: mark_missing -> impute_missing.
+    """Pass-through: the CDC dataset has no missing values to handle.
 
-    IN:  raw DataFrame
-    OUT: fully cleaned DataFrame, ready for train/test split
+    IN:  raw DataFrame from load_raw_data()
+    OUT: the same DataFrame (kept as a function for pipeline consistency)
     """
-    return impute_missing(mark_missing(df))
+    return df.copy()
 
 
 def fit_scaler(X_train: pd.DataFrame, save_path: str = "models/scaler.pkl") -> StandardScaler:
     """Fit a StandardScaler on the training features only, and persist it.
+
+    Scaling is still needed even though most features are already binary
+    (0/1): KNN is distance-based, and unscaled ordinal features like
+    MentHlth (0-30) or Income (1-8) would dominate the distance
+    calculation over binary features otherwise.
 
     IN:  X_train - training feature DataFrame (no target column)
     OUT: fitted StandardScaler, also written to save_path so evaluate.py

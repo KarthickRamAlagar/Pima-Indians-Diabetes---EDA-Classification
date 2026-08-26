@@ -1,10 +1,17 @@
 """
 train.py
 IN:  nothing directly -- pulls data via data_loader, cleans via preprocessing
-OUT: trained model files (models/knn.pkl, models/nb.pkl), the fitted
-     scaler (models/scaler.pkl), and a train/test split cache
-     (artifacts/split.pkl) so evaluate.py tests on the exact same held-out
-     data the models never saw during training.
+OUT: trained model files (models/knn_multi.pkl, models/knn.pkl,
+     models/nb.pkl), the fitted scaler (models/scaler.pkl), and a
+     train/test split cache (artifacts/split.pkl)
+
+SAMPLING NOTE: the full CDC dataset has 253,680 rows. KNN's distance
+calculations don't scale well to that size interactively, so this script
+trains on a STRATIFIED SAMPLE (see SAMPLE_SIZE below) rather than the
+full dataset. EDA and the data quality report (see app.py) still use the
+full 253,680 rows - only the ML training step is sampled, and this is
+documented here and in the README as a deliberate scoping decision, not
+an accident.
 
 Run with:  uv run python src/train.py
 """
@@ -23,6 +30,7 @@ RANDOM_STATE = 42
 MODELS_DIR = "models"
 ARTIFACTS_DIR = "artifacts"
 KNN_K_VALUES = [1, 3, 5, 7]
+SAMPLE_SIZE = 15000  # stratified sample size for ML training (see note above)
 
 
 def main():
@@ -30,9 +38,21 @@ def main():
     os.makedirs(ARTIFACTS_DIR, exist_ok=True)
 
     df = clean_data(load_raw_data())
+    print(f"Full dataset: {df.shape[0]} rows, {df.shape[1] - 1} features")
 
-    X = df.drop(columns=["Outcome"])
-    y = df["Outcome"]
+    # Stratified sample for ML training/evaluation (full data used for EDA elsewhere)
+    if len(df) > SAMPLE_SIZE:
+        df_sample, _ = train_test_split(
+            df, train_size=SAMPLE_SIZE, random_state=RANDOM_STATE,
+            stratify=df["Outcome"]
+        )
+    else:
+        df_sample = df
+    print(f"Sampled for ML training: {df_sample.shape[0]} rows "
+          f"(stratified on Outcome)")
+
+    X = df_sample.drop(columns=["Outcome"])
+    y = df_sample["Outcome"]
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2, random_state=RANDOM_STATE, stratify=y
     )
@@ -54,8 +74,7 @@ def main():
         print(f"KNN (k={k}) trained.")
     joblib.dump(knn_models, f"{MODELS_DIR}/knn_multi.pkl")
 
-    # Keep a single default (k=5) saved separately too, for anything that
-    # only wants "the" KNN model rather than the full k comparison
+    # Keep a single default (k=5) saved separately too
     joblib.dump(knn_models[5], f"{MODELS_DIR}/knn.pkl")
 
     nb = GaussianNB()

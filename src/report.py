@@ -118,10 +118,12 @@ def generate_pdf(df: pd.DataFrame, quality_df: pd.DataFrame, figures: dict,
     # Cover
     story.append(Spacer(1, 1.6 * inch))
     story.append(Paragraph("Assignment 1", TITLE_STYLE))
-    story.append(Paragraph("Pima Indians Diabetes &mdash; EDA &amp; Classification (26DS601)",
+    story.append(Paragraph("CDC Diabetes Health Indicators &mdash; EDA &amp; Classification (26DS601)",
                             SUBTITLE_STYLE))
     story.append(Spacer(1, 20))
-    story.append(Paragraph(f"Dataset shape: {df.shape[0]} rows &times; {df.shape[1]} columns",
+    story.append(Paragraph(f"Dataset shape: {df.shape[0]} rows &times; {df.shape[1]} columns "
+                            f"(source: CDC BRFSS 2015, UCI ML Repository id=891). "
+                            f"KNN/Naive Bayes trained on a stratified 15,000-row sample.",
                             BODY_STYLE))
     story.append(PageBreak())
 

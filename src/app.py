@@ -20,8 +20,11 @@ from visualize import (
     plot_correlation_heatmap, plot_class_distribution,
 )
 
-st.set_page_config(page_title="Pima Diabetes - EDA & Model Results", layout="wide")
-st.title("Assignment 1: Pima Indians Diabetes - EDA & Classification")
+st.set_page_config(page_title="CDC Diabetes Health Indicators - EDA & Model Results", layout="wide")
+st.title("Assignment 1: CDC Diabetes Health Indicators - EDA & Classification")
+st.caption("253,680 rows, 21 features (CDC BRFSS 2015, via UCI ML Repository id=891). "
+           "EDA uses the full dataset; KNN/Naive Bayes are trained on a 15,000-row "
+           "stratified sample for interactive performance (see README).")
 
 @st.cache_data
 def get_data():
@@ -51,21 +54,41 @@ with tab1:
     st.caption("Missing values were already imputed by preprocessing.clean_data(); "
                "see README for the raw missing-value counts before imputation.")
 
+@st.cache_resource
+def cached_boxplots():
+    return plot_boxplots(df)
+
+@st.cache_resource
+def cached_histograms():
+    return plot_histograms(df)
+
+@st.cache_resource
+def cached_scatter():
+    return plot_scatter(df)
+
+@st.cache_resource
+def cached_heatmap():
+    return plot_correlation_heatmap(df)
+
+@st.cache_resource
+def cached_class_dist():
+    return plot_class_distribution(df)
+
 with tab2:
     st.subheader("Boxplots")
-    st.pyplot(plot_boxplots(df))
+    st.pyplot(cached_boxplots())
 
     st.subheader("Histograms")
-    st.pyplot(plot_histograms(df))
+    st.pyplot(cached_histograms())
 
-    st.subheader("Scatter: Glucose vs BMI")
-    st.pyplot(plot_scatter(df))
+    st.subheader("Scatter: BMI vs GenHlth")
+    st.pyplot(cached_scatter())
 
     st.subheader("Correlation heatmap")
-    st.pyplot(plot_correlation_heatmap(df))
+    st.pyplot(cached_heatmap())
 
     st.subheader("Class distribution")
-    st.pyplot(plot_class_distribution(df))
+    st.pyplot(cached_class_dist())
 
 with tab3:
     st.subheader("KNN vs Naive Bayes")
@@ -91,6 +114,7 @@ with tab4:
         ax.legend()
         ax.grid(alpha=0.3)
         st.pyplot(fig)
+        plt.close(fig)
 
         best_k_row = knn_k_df.loc[knn_k_df["F1-score"].idxmax()]
         st.caption(f"Best F1-score at k={int(best_k_row['k'])} "
@@ -128,6 +152,7 @@ with tab5:
         ax.legend()
         ax.grid(alpha=0.3, axis="y")
         st.pyplot(fig)
+        plt.close(fig)
 
         winner = compare_df.loc[compare_df["F1-score"].idxmax(), "Model"]
         st.caption(f"Higher F1-score: {winner}.")
@@ -137,8 +162,9 @@ with tab5:
 
 # --- Floating round download button (links directly to the hosted PDF) ---
 PDF_URL = ("https://raw.githubusercontent.com/KarthickRamAlagar/"
-           "Pima-Indians-Diabetes---EDA-Classification/main/"
-           "assignment1_pima_diabetes_report%20(1).pdf")
+ "Pima-Indians-Diabetes---EDA-Classification/main/"
+ "CDC%20Diabetes%20Health%20Indicator%20-%2026034.pdf")
+
 
 fab_html = f"""
 <style>
