@@ -22,6 +22,7 @@ from visualize import (
 
 st.set_page_config(page_title="CDC Diabetes Health Indicators - EDA & Model Results", layout="wide")
 st.title("Assignment 1: CDC Diabetes Health Indicators - EDA & Classification")
+st.markdown("## **SDG 3: Good Health and Well-being**")
 st.caption("253,680 rows, 21 features (CDC BRFSS 2015, via UCI ML Repository id=891). "
            "EDA uses the full dataset; KNN/Naive Bayes are trained on a 15,000-row "
            "stratified sample for interactive performance (see README).")
