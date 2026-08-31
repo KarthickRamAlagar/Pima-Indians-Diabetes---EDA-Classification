@@ -1,0 +1,5 @@
+k,Model,Accuracy,Precision,Recall,F1-score,ROC-AUC
+1,Weighted KNN (k=1),0.772,0.281,0.409,0.333,0.62
+3,Weighted KNN (k=3),0.729,0.262,0.522,0.349,0.684
+5,Weighted KNN (k=5),0.711,0.265,0.605,0.369,0.71
+7,Weighted KNN (k=7),0.694,0.259,0.641,0.369,0.726

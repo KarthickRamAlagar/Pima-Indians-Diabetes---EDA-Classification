@@ -1,3 +1,4 @@
 Model,Accuracy,Precision,Recall,F1-score,ROC-AUC
-KNN,0.704,0.261,0.612,0.366,0.709
+"KNN (k=5, uniform)",0.704,0.261,0.612,0.366,0.709
 Naive Bayes,0.712,0.29,0.734,0.416,0.781
+"Weighted KNN (k=5, distance)",0.711,0.265,0.605,0.369,0.71
