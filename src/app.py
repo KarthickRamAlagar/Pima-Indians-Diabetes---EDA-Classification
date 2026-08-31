@@ -54,41 +54,50 @@ with tab1:
     st.caption("Missing values were already imputed by preprocessing.clean_data(); "
                "see README for the raw missing-value counts before imputation.")
 
+import io
+
+def _fig_to_png_bytes(fig):
+    buf = io.BytesIO()
+    fig.savefig(buf, format="png", dpi=110, bbox_inches="tight")
+    plt.close(fig)
+    buf.seek(0)
+    return buf.getvalue()
+
 @st.cache_resource
 def cached_boxplots():
-    return plot_boxplots(df)
+    return _fig_to_png_bytes(plot_boxplots(df))
 
 @st.cache_resource
 def cached_histograms():
-    return plot_histograms(df)
+    return _fig_to_png_bytes(plot_histograms(df))
 
 @st.cache_resource
 def cached_scatter():
-    return plot_scatter(df)
+    return _fig_to_png_bytes(plot_scatter(df))
 
 @st.cache_resource
 def cached_heatmap():
-    return plot_correlation_heatmap(df)
+    return _fig_to_png_bytes(plot_correlation_heatmap(df))
 
 @st.cache_resource
 def cached_class_dist():
-    return plot_class_distribution(df)
+    return _fig_to_png_bytes(plot_class_distribution(df))
 
 with tab2:
     st.subheader("Boxplots")
-    st.pyplot(cached_boxplots())
+    st.image(cached_boxplots())
 
     st.subheader("Histograms")
-    st.pyplot(cached_histograms())
+    st.image(cached_histograms())
 
     st.subheader("Scatter: BMI vs GenHlth")
-    st.pyplot(cached_scatter())
+    st.image(cached_scatter())
 
     st.subheader("Correlation heatmap")
-    st.pyplot(cached_heatmap())
+    st.image(cached_heatmap())
 
     st.subheader("Class distribution")
-    st.pyplot(cached_class_dist())
+    st.image(cached_class_dist())
 
 with tab3:
     st.subheader("KNN vs Naive Bayes")
