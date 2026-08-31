@@ -48,16 +48,23 @@ def main():
     X_test_scaled = scaler.transform(X_test)
 
     results = [
-        evaluate_model(knn, X_test_scaled, y_test, "KNN"),
+        evaluate_model(knn, X_test_scaled, y_test, "KNN (k=5, uniform)"),
         evaluate_model(nb, X_test_scaled, y_test, "Naive Bayes"),
     ]
+
+    knn_weighted_path = f"{MODELS_DIR}/knn_weighted.pkl"
+    if os.path.exists(knn_weighted_path):
+        knn_weighted = joblib.load(knn_weighted_path)
+        results.append(evaluate_model(knn_weighted, X_test_scaled, y_test,
+                                        "Weighted KNN (k=5, distance)"))
+
     results_df = pd.DataFrame(results).round(3)
     os.makedirs(ARTIFACTS_DIR, exist_ok=True)
     results_df.to_csv(f"{ARTIFACTS_DIR}/metrics.csv", index=False)
     print("\nSaved comparison table to artifacts/metrics.csv")
     print(results_df)
 
-    # KNN across multiple k values (skip if train.py predates this feature)
+    # Uniform KNN across multiple k values
     knn_multi_path = f"{MODELS_DIR}/knn_multi.pkl"
     if os.path.exists(knn_multi_path):
         knn_models = joblib.load(knn_multi_path)
@@ -75,6 +82,26 @@ def main():
     else:
         print("\nNo models/knn_multi.pkl found — rerun train.py to enable the "
               "KNN k-comparison (requires the updated train.py).")
+
+    # Weighted KNN across multiple k values
+    knn_weighted_multi_path = f"{MODELS_DIR}/knn_weighted_multi.pkl"
+    if os.path.exists(knn_weighted_multi_path):
+        knn_weighted_models = joblib.load(knn_weighted_multi_path)
+        kw_results = []
+        for k, model in sorted(knn_weighted_models.items()):
+            row = evaluate_model(model, X_test_scaled, y_test, f"Weighted KNN (k={k})")
+            row["k"] = k
+            kw_results.append(row)
+        kw_results_df = pd.DataFrame(kw_results)[
+            ["k", "Model", "Accuracy", "Precision", "Recall", "F1-score", "ROC-AUC"]
+        ].round(3)
+        kw_results_df.to_csv(f"{ARTIFACTS_DIR}/knn_weighted_k_metrics.csv", index=False)
+        print("\nSaved Weighted KNN k-comparison table to "
+              "artifacts/knn_weighted_k_metrics.csv")
+        print(kw_results_df)
+    else:
+        print("\nNo models/knn_weighted_multi.pkl found — rerun train.py to "
+              "enable the Weighted KNN k-comparison.")
 
 
 if __name__ == "__main__":

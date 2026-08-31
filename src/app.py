@@ -44,10 +44,14 @@ metrics_df = pd.read_csv(metrics_path) if os.path.exists(metrics_path) else pd.D
 knn_k_path = "artifacts/knn_k_metrics.csv"
 knn_k_df = pd.read_csv(knn_k_path) if os.path.exists(knn_k_path) else pd.DataFrame()
 
+knn_weighted_k_path = "artifacts/knn_weighted_k_metrics.csv"
+knn_weighted_k_df = pd.read_csv(knn_weighted_k_path) if os.path.exists(knn_weighted_k_path) else pd.DataFrame()
+
 tab1, tab2, tab3, tab4, tab5 = st.tabs(
     ["Data quality", "Visualizations", "Model results", "KNN: k comparison",
      "Best model comparison"]
 )
+# Note: tab4 now includes a weighting-scheme toggle (uniform vs distance-weighted KNN)
 
 with tab1:
     st.subheader("Data quality report")
@@ -101,7 +105,7 @@ with tab2:
     st.image(cached_class_dist())
 
 with tab3:
-    st.subheader("KNN vs Naive Bayes")
+    st.subheader("KNN vs Weighted KNN vs Naive Bayes")
     if not metrics_df.empty:
         st.dataframe(metrics_df, width="stretch")
     else:
@@ -110,24 +114,32 @@ with tab3:
 
 with tab4:
     st.subheader("KNN performance across k values")
-    if not knn_k_df.empty:
-        st.dataframe(knn_k_df, width="stretch")
+    weighting_choice = st.radio(
+        "Weighting scheme",
+        ["Uniform (all neighbors count equally)", "Distance-weighted (closer neighbors count more)"],
+        horizontal=True,
+    )
+    active_df = knn_k_df if weighting_choice.startswith("Uniform") else knn_weighted_k_df
+    chart_label = "Uniform KNN" if weighting_choice.startswith("Uniform") else "Weighted KNN"
+
+    if not active_df.empty:
+        st.dataframe(active_df, width="stretch")
 
         metric_cols = ["Accuracy", "Precision", "Recall", "F1-score", "ROC-AUC"]
         fig, ax = plt.subplots(figsize=(8, 5))
         for metric in metric_cols:
-            ax.plot(knn_k_df["k"], knn_k_df[metric], marker="o", label=metric)
+            ax.plot(active_df["k"], active_df[metric], marker="o", label=metric)
         ax.set_xlabel("k (number of neighbors)")
         ax.set_ylabel("Score")
-        ax.set_xticks(knn_k_df["k"])
-        ax.set_title("KNN evaluation metrics vs k")
+        ax.set_xticks(active_df["k"])
+        ax.set_title(f"{chart_label} evaluation metrics vs k")
         ax.legend()
         ax.grid(alpha=0.3)
         st.pyplot(fig)
         plt.close(fig)
 
-        best_k_row = knn_k_df.loc[knn_k_df["F1-score"].idxmax()]
-        st.caption(f"Best F1-score at k={int(best_k_row['k'])} "
+        best_k_row = active_df.loc[active_df["F1-score"].idxmax()]
+        st.caption(f"{chart_label}: best F1-score at k={int(best_k_row['k'])} "
                    f"(F1={best_k_row['F1-score']:.3f}).")
     else:
         st.warning("Run `uv run python src/train.py` then "
@@ -135,30 +147,41 @@ with tab4:
                     "train.py) to generate the k-comparison results.")
 
 with tab5:
-    st.subheader("Best KNN (by k) vs Naive Bayes")
+    st.subheader("Best Uniform KNN vs Best Weighted KNN vs Naive Bayes")
     if not knn_k_df.empty and not metrics_df.empty:
+        metric_cols = ["Accuracy", "Precision", "Recall", "F1-score", "ROC-AUC"]
+
         best_knn_row = knn_k_df.loc[knn_k_df["F1-score"].idxmax()].copy()
-        best_knn_row["Model"] = f"KNN (k={int(best_knn_row['k'])})"
+        best_knn_row["Model"] = f"KNN (k={int(best_knn_row['k'])}, uniform)"
         nb_row = metrics_df[metrics_df["Model"] == "Naive Bayes"].iloc[0]
 
-        metric_cols = ["Accuracy", "Precision", "Recall", "F1-score", "ROC-AUC"]
-        compare_df = pd.DataFrame([
+        rows = [
             {"Model": best_knn_row["Model"], **{m: best_knn_row[m] for m in metric_cols}},
             {"Model": "Naive Bayes", **{m: nb_row[m] for m in metric_cols}},
-        ])
+        ]
+
+        if not knn_weighted_k_df.empty:
+            best_wknn_row = knn_weighted_k_df.loc[knn_weighted_k_df["F1-score"].idxmax()].copy()
+            best_wknn_row["Model"] = f"Weighted KNN (k={int(best_wknn_row['k'])})"
+            rows.insert(1, {"Model": best_wknn_row["Model"],
+                             **{m: best_wknn_row[m] for m in metric_cols}})
+
+        compare_df = pd.DataFrame(rows)
         st.dataframe(compare_df, width="stretch")
 
-        fig, ax = plt.subplots(figsize=(8, 5))
+        n_models = len(compare_df)
+        colors = ["#7F77DD", "#E0A458", "#1D9E75"][:n_models]
+        fig, ax = plt.subplots(figsize=(9, 5))
         x = range(len(metric_cols))
-        width = 0.35
-        ax.bar([i - width / 2 for i in x], compare_df.iloc[0][metric_cols], width,
-               label=compare_df.iloc[0]["Model"], color="#7F77DD")
-        ax.bar([i + width / 2 for i in x], compare_df.iloc[1][metric_cols], width,
-               label=compare_df.iloc[1]["Model"], color="#1D9E75")
+        bar_width = 0.8 / n_models
+        for i in range(n_models):
+            offset = (i - (n_models - 1) / 2) * bar_width
+            ax.bar([xi + offset for xi in x], compare_df.iloc[i][metric_cols],
+                   bar_width, label=compare_df.iloc[i]["Model"], color=colors[i])
         ax.set_xticks(list(x))
         ax.set_xticklabels(metric_cols)
         ax.set_ylabel("Score")
-        ax.set_title("Best-tuned KNN vs Naive Bayes")
+        ax.set_title("Best-tuned KNN variants vs Naive Bayes")
         ax.legend()
         ax.grid(alpha=0.3, axis="y")
         st.pyplot(fig)

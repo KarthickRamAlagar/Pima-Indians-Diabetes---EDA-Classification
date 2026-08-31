@@ -2,8 +2,14 @@
 train.py
 IN:  nothing directly -- pulls data via data_loader, cleans via preprocessing
 OUT: trained model files (models/knn_multi.pkl, models/knn.pkl,
-     models/nb.pkl), the fitted scaler (models/scaler.pkl), and a
-     train/test split cache (artifacts/split.pkl)
+     models/knn_weighted_multi.pkl, models/knn_weighted.pkl, models/nb.pkl),
+     the fitted scaler (models/scaler.pkl), and a train/test split cache
+     (artifacts/split.pkl)
+
+Trains TWO KNN variants across the same k values:
+  - Uniform KNN (weights='uniform'): every neighbor votes equally
+  - Weighted KNN (weights='distance'): closer neighbors count more than
+    farther ones, which can help when the class boundary isn't uniform
 
 SAMPLING NOTE: the full CDC dataset has 253,680 rows. KNN's distance
 calculations don't scale well to that size interactively, so this script
@@ -65,17 +71,25 @@ def main():
     X_train_bal, y_train_bal = smote.fit_resample(X_train_scaled, y_train)
     print("Class balance after SMOTE:", dict(y_train_bal.value_counts()))
 
-    # Train KNN across multiple k values so evaluate.py can compare them
+    # Uniform KNN across multiple k values
     knn_models = {}
     for k in KNN_K_VALUES:
-        model = KNeighborsClassifier(n_neighbors=k)
+        model = KNeighborsClassifier(n_neighbors=k, weights="uniform")
         model.fit(X_train_bal, y_train_bal)
         knn_models[k] = model
-        print(f"KNN (k={k}) trained.")
+        print(f"KNN uniform (k={k}) trained.")
     joblib.dump(knn_models, f"{MODELS_DIR}/knn_multi.pkl")
-
-    # Keep a single default (k=5) saved separately too
     joblib.dump(knn_models[5], f"{MODELS_DIR}/knn.pkl")
+
+    # Weighted KNN across the same k values
+    knn_weighted_models = {}
+    for k in KNN_K_VALUES:
+        model = KNeighborsClassifier(n_neighbors=k, weights="distance")
+        model.fit(X_train_bal, y_train_bal)
+        knn_weighted_models[k] = model
+        print(f"KNN weighted (k={k}) trained.")
+    joblib.dump(knn_weighted_models, f"{MODELS_DIR}/knn_weighted_multi.pkl")
+    joblib.dump(knn_weighted_models[5], f"{MODELS_DIR}/knn_weighted.pkl")
 
     nb = GaussianNB()
     nb.fit(X_train_bal, y_train_bal)
